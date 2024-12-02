@@ -1,0 +1,44 @@
+:- use_module(library(dcg/basics)).
+:- initialization(main, main).
+
+line((A, B)) --> integer(A), blanks, integer(B).
+
+lines([]) --> eos.
+lines([L|Ls]) --> line(L), eol, lines(Ls).
+
+separate([], [], []).
+separate([(A, B)|T], [A|As], [B|Bs]) :- separate(T, As, Bs).
+
+load(A, B) :-
+    phrase_from_file(lines(X), 'input'),
+    separate(X, A, B).
+
+dist([], [], []).
+dist([X|Xs], [Y|Ys], [Z|Zs]) :- Z is abs(X-Y), dist(Xs, Ys, Zs).
+
+part_one(A, B) :-
+    msort(A, X),
+    msort(B, Y),
+    dist(X, Y, Z),
+    sum_list(Z, S),
+    format('[1] Distance of locations: ~d\n', [S]).
+
+count(_, [], 0).
+count(X, [X|Xs], C) :- count(X, Xs, D), C = D + 1.
+count(X, [_|Ys], C) :- count(X, Ys, C).
+
+similarity([], _, 0).
+similarity([X|Xs], Y, S) :- count(X, Y, C), similarity(Xs, Y, T), S = T + (X * C).
+    
+part_two(A, B) :-
+    similarity(A, B, S),
+    format('[2] Similarity of locations: ~d\n', [S]).
+
+    
+main(_) :-
+    format('AoC 2024 - Day 1\n'),
+    load(A, B),
+    part_one(A, B),
+    part_two(A, B).
+
+
