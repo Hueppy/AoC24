@@ -1,0 +1,44 @@
+:- use_module(library(dcg/basics)).
+:- initialization(main, main).
+
+line([R])    --> integer(R).
+line([R|Rs]) --> integer(R), blanks, line(Rs).
+
+lines([])     --> eos.
+lines([L|Ls]) --> line(L), eol, lines(Ls).
+
+load(R) :- phrase_from_file(lines(R), input).
+
+derive([_], []).
+derive([X1,X2|Xs], [X1-X2|Ds]) :- derive([X2|Xs], Ds).
+
+same([_]).
+same([X1,X2|Xs]) :- X1 = X2, same([X2|Xs]).
+
+safe(R) :- derive(R, D)
+         , maplist(sign, D, S)
+         , same(S)
+         , forall(member(X, D), abs(X) =< 3)
+         .
+
+count_safe([], 0).
+count_safe([R|Rs], C) :- safe(R), count_safe(Rs, D), C = D + 1.
+count_safe([_|Rs], C) :- count_safe(Rs, C).
+
+part_one(Rs) :- count_safe(Rs, C)
+              , format('[1] ~d Reports are safe\n', [C])
+              .
+
+similarity([], _, 0).
+similarity([X|Xs], Y, S) :- count(X, Y, C), similarity(Xs, Y, T), S = T + (X * C).
+    
+part_two(A, B) :- similarity(A, B, S)
+                , format('[2] Similarity of locations: ~d\n', [S])
+                .
+    
+main(_) :- format('AoC 2024 - Day 2\n')
+         , load(R)
+         , part_one(R)
+         %, part_two(A, B)
+         .
+
